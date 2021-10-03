@@ -1,52 +1,33 @@
-import { Controller, Get, ValidationPipe, UsePipes, Post, Body, UseGuards, ParseIntPipe, Delete, Put, Param } from '@nestjs/common';
+import { Controller, Get, ValidationPipe, UsePipes, Post, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { NuevoUsuarioDto } from './dto/nuevo-usuario.dto';
 import { LoginUsuarioDto } from './dto/login.dto';
-import { ProductoService } from '../producto/producto.service';
-import { RolDecorator } from '../decorators/rol.decorator';
-import { RolNombre } from '../rol/rol.enum';
-import { JwtAuthGuard } from '../guards/jwt.guard';
-import { RolesGuard } from '../guards/rol.guard';
-import { ProductoDto } from '../producto/dto/producto.dto';
+import { TokenDto } from './dto/token.dto';
+
 
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly productoService: ProductoService) { }
+    constructor(private readonly authService: AuthService) { }
 
-    @RolDecorator(RolNombre.ADMIN, RolNombre.USER)
-    @UseGuards(JwtAuthGuard, RolesGuard)
     @Get()
-    async getAll() {
-        return await this.productoService.getAll();
+    getAll() {
+        return this.authService.getall();
     }
 
-    @RolDecorator(RolNombre.ADMIN, RolNombre.USER)
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Get(':id')
-    async getOne(@Param('id', ParseIntPipe) id: number) {
-        return await this.productoService.findById(id);
-    }
-
-    @RolDecorator(RolNombre.ADMIN)
-    @UseGuards(JwtAuthGuard, RolesGuard)
     @UsePipes(new ValidationPipe({ whitelist: true }))
-    @Post()
-    async create(@Body() dto: ProductoDto) {
-        return await this.productoService.create(dto);
+    @Post('nuevo')
+    create(@Body() dto: NuevoUsuarioDto) {
+        return this.authService.create(dto);
     }
 
-    @RolDecorator(RolNombre.ADMIN)
-    @UseGuards(JwtAuthGuard, RolesGuard)
     @UsePipes(new ValidationPipe({ whitelist: true }))
-    @Put(':id')
-    async update(@Param('id', ParseIntPipe) id: number, @Body() dto: ProductoDto) {
-        return await this.productoService.update(id, dto);
+    @Post('login')
+    login(@Body() dto: LoginUsuarioDto) {
+        return this.authService.login(dto);
     }
 
-    @RolDecorator(RolNombre.ADMIN)
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Delete(':id')
-    async delete(@Param('id', ParseIntPipe) id: number) {
-        return await this.productoService.delete(id)
+    @Post('refresh')
+    refresh(@Body() dto: TokenDto) {
+        return this.authService.refresh(dto);
     }
 }
